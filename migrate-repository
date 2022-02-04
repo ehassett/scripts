@@ -1,0 +1,294 @@
+#!/bin/bash -e
+
+### Parameters ###
+dry_run=''
+run_quiet=''
+
+while getopts 'dqh' flag; do
+  case "${flag}" in
+    d) dry_run=true ;;
+    q) run_quiet=true ;;
+    h)
+      echo "Usage:"
+      echo "  Interactive script to copy files, remove artifacts, and perform other actions as a migration from one (base) repo to another (target)."
+      echo "Options:"
+      echo "  -d (dry-run) - run script without making changes to files to test for intended outcome."
+      echo "  -h (help)    - display this help text."
+      echo "  -q (quiet)   - run all tasks using default values."
+      echo "Default Values:"
+      echo "  target repository path: ."
+      echo "  base repository path:   ../base-repository"
+      echo "  artifacts to remove:    .chglog, CHANGELOG.md, Jenkinsfile, build-spec.yml"
+      echo "  files to copy:          .editorconfig, .gitattributes, .gitignore, .terraform-docs.yml, .tfsec.yml, CODE_OF_CONDUCT.md, CODEOWNERS, commitlint.config.js, CONTRIBUTORS.md, LICENSE, SUPPORT.md"
+      echo "  codeowners to add:      @ehassett"
+      echo "  branch name:            migrate-repository"
+      echo "  commit message:         chore: remove artifacts and copy files"
+      exit 0
+      ;;
+  esac
+done
+
+
+### Utility Methods ###
+confirm() {
+  #
+  # syntax: confirm [<prompt>]
+  #
+  # Prompts the user to enter Yes or No and returns 0/1.
+  #
+  # This  program  is free software: you can redistribute it and/or modify  it
+  # under the terms of the GNU General Public License as published by the Free
+  # Software  Foundation, either version 3 of the License, or (at your option)
+  # any later version.
+  #
+  # This  program  is  distributed  in the hope that it will  be  useful,  but
+  # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  # or  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public  License
+  # for more details.
+  #
+  # You  should  have received a copy of the GNU General Public License  along
+  # with this program. If not, see <http://www.gnu.org/licenses/>
+  #
+  #  04 Jul 17   0.1   - Initial version - MEJT
+  #
+  local _prompt _default _response
+
+  if [ "$1" ]; then _prompt="$1"; else _prompt="Are you sure"; fi
+  _prompt="$_prompt [y/n] ?"
+
+  # Loop forever until the user enters a valid response (Y/N or Yes/No).
+  while true; do
+    read -r -p "$_prompt " _response
+    case "$_response" in
+      [Yy][Ee][Ss]|[Yy]) # Yes or Y (case-insensitive).
+        return 0
+        ;;
+      [Nn][Oo]|[Nn])  # No or N.
+        return 1
+        ;;
+      *) # Anything else (including a blank) is invalid.
+        ;;
+    esac
+  done
+}
+
+merge_folders() {
+  source_directory=$1
+  destination_directory=$2
+
+  find "$source_directory" -type d -exec mkdir -vp "$destination_directory"/{} \; -or -exec mv -nv {} "$destination_directory"/{} \;
+}
+
+merge_files() {
+  source_file=$1
+  target_file=$2
+
+  cat "$source_file" >> "$target_file"
+}
+
+
+### Task Functions ###
+update_github_folder() {
+  echo "Copying .github folder..."
+  if [[ $dry_run != true ]]; then
+    cp -R "$base_repository_path/.github/" "$target_repository_path"
+    echo "DONE: Copied .github folder!"
+  fi
+}
+
+append_readme() {
+  echo "Appending contents of README..."
+  if [[ $dry_run != true ]]; then
+    merge_files "$base_repository_path/README.md" "$target_repository_path/README.md"
+    echo "DONE: README contents appended!"
+  fi
+}
+
+clear_stale_branches() {
+  echo "Clearing stale branches..."
+
+  if [[ $dry_run != true ]]; then
+    has_merged_branches="" && [ -z "$(git -C $target_repository_path branch --merged | grep -E -v "(^\*|master|main|dev)")" ]
+
+    # If we do have merged branches, then let us delete them.
+    [ ! -z $has_merged_branches] && git -C $target_repository_path branch --merged | grep -E -v "(^\*|master|main|dev)" | xargs git -C $target_repository_path branch -d
+
+    # Clean up remotes.
+    git -C $target_repository_path remote prune origin
+
+    echo "DONE: Stale branches pruned!"
+  fi
+}
+
+add_codeowners() {
+  echo "Overwriting CODEOWNERS..."
+
+  if [[ $dry_run != true ]]; then
+    echo "# Primary Owners" > "$target_repository_path/CODEOWNERS"
+    echo "" >> "$target_repository_path/CODEOWNERS"
+  fi
+
+  for owner in $codeowners; do
+    echo "  adding $owner..."
+    if [[ $dry_run != true ]]; then
+      echo "*    $owner" >> "$target_repository_path/CODEOWNERS"
+    fi
+  done
+
+  if [[ $dry_run != true ]]; then
+    echo "DONE: All codeowners added!"
+  fi
+}
+
+push_changes() {
+  echo "Committing changes to branch $branch_name..."
+
+  if [[ $dry_run != true ]]; then
+    git -C $target_repository_path checkout -b $branch_name
+    git -C $target_repository_path add $target_repository_path
+    git -C $target_repository_path commit -m "$commit_message"
+    git -C $target_repository_path push -u origin $branch_name
+
+    echo "DONE: Changes pushed to remote!"
+  fi
+}
+
+remove_artifacts() {
+  echo "Removing artifacts..."
+
+  for artifact in $artifacts_to_remove; do
+    echo "  removing $target_repository_path/$artifact"
+    if [[ $dry_run != true ]]; then
+      rm -rf $target_repository_path/$artifact
+    fi
+  done
+
+  if [[ $dry_run != true ]]; then
+    echo "DONE: All artifacts removed!"
+  fi
+}
+
+copy_files() {
+  echo "Copying files..."
+
+  for file in $files_to_copy; do
+    echo "  copying $file to $target_repository_path/$file"
+    if [[ $dry_run != true ]]; then
+      cp $base_repository_path/$file $target_repository_path/$file
+    fi
+  done
+
+  if [[ $dry_run != true ]]; then
+    echo "DONE: All files copied!"
+  fi
+}
+
+fix_terraform_lock() {
+  # Check if repo is a Terraform module
+  repository_origin_url=$(git -C $target_repository_path config --get remote.origin.url)
+  repository_origin_name=$(basename -s .git $repository_origin_url)
+  if [[ $repository_origin_name == "terraform-"* ]]; then
+    echo "Working in module repo, removing .terraform.lock.hcl..."
+    if [[ $dry_run != true ]]; then
+      rm -rf "$target_repository_path/.terraform.lock.hcl"
+    fi
+
+    echo "Working in module repo, adding .terraform.lock.hcl to gitignore..."
+    if [[ $dry_run != true ]]; then
+      echo "**.terraform.lock.hcl" >> "$target_repository_path/.gitignore"
+    fi
+  fi
+}
+
+
+### User Prompt ###
+prompt_user() {
+  # Get repository configuration
+  read -p 'Path to Target Repo (.): ' target_repository_path
+  target_repository_path=${target_repository_path:="."}
+  read -p 'Path to Base Repo (../base-repository): ' base_repository_path
+  base_repository_path=${base_repository_path:="../base-repository"}
+
+  confirm 'Update .github folder (warning: overwrites current files)?' && task_update_github_folder=true || task_update_github_folder=false
+  confirm 'Append README contents?' && task_append_readme=true || task_append_readme=false
+  confirm 'Remove any artifacts?' && prompt_remove_artifacts && task_remove_artifacts=true || task_remove_artifacts=false
+  confirm 'Copy any files?' && prompt_copy_files && task_copy_files=true || task_copy_files=false
+  confirm 'Clear stale branches?' && task_clear_stale_branches=true || task_clear_stale_branches=false
+  confirm 'Update CODEOWNERS (warning: overwrites file)?' && prompt_add_codeowners && task_add_codeowners=true || task_add_codeowners=false
+  confirm 'Fix .terraform.lock.hcl for Modules?' && task_fix_terraform_lock=true || task_fix_terraform_lock=false
+  confirm 'Push changes to remote?' && prompt_push_changes && task_push_changes=true || task_push_changes=false
+}
+
+prompt_remove_artifacts () {
+  # Get artifacts to remove
+  read -p 'Space-separated artifacts to remove (see usage with -h for defaults): ' artifacts_to_remove
+  artifacts_to_remove=${artifacts_to_remove:=".chglog CHANGELOG.md Jenkinsfile build-spec.yml"}
+}
+
+prompt_copy_files () {
+  # Get files to copy
+  read -p 'Space-separated files to copy (see usage with -h for defaults): ' files_to_copy
+  files_to_copy=${files_to_copy:=".editorconfig .gitattributes .gitignore .terraform-docs.yml .tfsec.yml CODE_OF_CONDUCT.md CODEOWNERS commitlint.config.js CONTRIBUTORS.md LICENSE SUPPORT.md"}
+}
+
+prompt_add_codeowners() {
+  # Get codeowners to add
+  read -p 'Space-separated codeowners (@ehassett): ' codeowners
+  codeowners=${codeowners:="@ehassett"}
+}
+
+prompt_push_changes() {
+  # Get push configuration
+  read -p 'Branch for PR (migrate-repository): ' branch_name
+  branch_name=${branch_name:="migrate-repository"}
+  read -p 'Commit message for PR (chore: remove artifacts and copy files): ' commit_message
+  commit_message=${commit_message:="chore: remove artifacts and copy files"}
+}
+
+
+### Default Variables ###
+set_defaults() {
+  target_repository_path="."
+  base_repository_path="../base-repository"
+  artifacts_to_remove=".chglog CHANGELOG.md Jenkinsfile build-spec.yml"
+  files_to_copy=".editorconfig .gitattributes .gitignore .terraform-docs.yml .tfsec.yml CODE_OF_CONDUCT.md CODEOWNERS commitlint.config.js CONTRIBUTORS.md LICENSE SUPPORT.md"
+  codeowners="@ehassett"
+  branch_name="migrate-repository"
+  commit_message="chore: remove artifacts and copy files"
+}
+
+
+### Entrypoints ###
+run() {
+  [ $task_update_github_folder = true ] && update_github_folder
+  [ $task_append_readme = true ] && append_readme
+  [ $task_remove_artifacts = true ] && remove_artifacts
+  [ $task_copy_files = true ] && copy_files
+  [ $task_clear_stale_branches = true ] && clear_stale_branches
+  [ $task_add_codeowners = true ] && add_codeowners
+  [ $task_fix_terraform_lock = true ] && fix_terraform_lock
+  [ $task_push_changes = true ] && push_changes
+}
+
+run_quiet() {
+  # Set default values
+  set_defaults
+
+  # Run task functions
+  update_github_folder
+  append_readme
+  remove_artifacts
+  copy_files
+  clear_stale_branches
+  add_codeowners
+  fix_terraform_lock
+  push_changes
+}
+
+### Run ###
+if [[ $run_quiet = true ]]; then
+  run_quiet
+else
+  prompt_user
+  run
+fi
