@@ -2,11 +2,20 @@
 
 This repository stores scripts that I've used once upon a time for any future needs.
 
-# migrate-repository
+# Contents
+- [ehassett's scripts](#ehassetts-scripts)
+- [Contents](#contents)
+- [migrate-repository](#migrate-repository)
+  - [Usage](#usage)
+- [migrate-tfc-state](#migrate-tfc-state)
+  - [Usage](#usage-1)
+
+# [migrate-repository](./migrate-repository/)
 
 Interactive script to copy files, remove artifacts, and perform other actions as a migration from a base repo to a target repo.
 
 ## Usage
+
 ```
 Options:
   -d (dry-run) - run script without making changes to files to test for intended outcome.
@@ -21,3 +30,18 @@ Default Values:
   branch name:            migrate-repository
   commit message:         chore: remove artifacts and copy files
 ```
+
+# [migrate-tfc-state](./migrate-tfc-state/)
+
+Python script for copying the Terraform Cloud (or Enterprise) state file from one workspace to another.
+
+## Usage
+
+First, ensure that you have the `TFC_TOKEN` and `TFC_ORGANIZATION` environment variables set.
+
+If using Terraform Enterprise, `TFC_URL` will need set as well. It defaults to `app.terraform.io`.
+
+Run the command `python migrate-tfc-state.py <source_workspace> <target_workspace> [-auto]`:
+- replace `<source_workspace>` with the workspace you want to copy state from
+- replace `<target_workspace>` with the workspace you want to copy state to
+- optionally specify `-auto` at the end of the command to skip confirmation
