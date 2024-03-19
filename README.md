@@ -9,6 +9,8 @@ This repository stores scripts that I've used once upon a time for any future ne
   - [Usage](#usage)
 - [migrate-tfc-state](#migrate-tfc-state)
   - [Usage](#usage-1)
+- [unlock-workspace](#unlock-workspace)
+  - [Usage](#usage-2)
 
 # [migrate-repository](./migrate-repository/)
 
@@ -37,11 +39,20 @@ Python script for copying the Terraform Cloud (or Enterprise) state file from on
 
 ## Usage
 
-First, ensure that you have the `TFC_TOKEN` and `TFC_ORGANIZATION` environment variables set.
+1. Ensure that you have the `TFC_TOKEN` and `TFC_ORGANIZATION` environment variables set.
+     - If using Terraform Enterprise, `TFC_URL` will need set as well. It defaults to `app.terraform.io`.
+2. Run the command `python migrate-tfc-state.py <source_workspace> <target_workspace> [-auto]`:
+    - replace `<source_workspace>` with the workspace you want to copy state from
+    - replace `<target_workspace>` with the workspace you want to copy state to
+    - optionally specify `-auto` at the end of the command to skip confirmation
 
-If using Terraform Enterprise, `TFC_URL` will need set as well. It defaults to `app.terraform.io`.
+# [unlock-workspace](./unlock-workspace/)
 
-Run the command `python migrate-tfc-state.py <source_workspace> <target_workspace> [-auto]`:
-- replace `<source_workspace>` with the workspace you want to copy state from
-- replace `<target_workspace>` with the workspace you want to copy state to
-- optionally specify `-auto` at the end of the command to skip confirmation
+Python script for unlocking Terraform Cloud (or Enterprise) workspaces by list or project.
+
+## Usage
+
+1. Ensure that you have the `TFC_TOKEN` and `TFC_ORGANIZATION` environment variables set.
+     - If using Terraform Enterprise, `TFC_URL` will need set as well. It defaults to `app.terraform.io`.
+2. Edit the script by adding either `TFC_WORKSPACES` or `TFC_PROJECT`. Using a project name takes priority.
+3. Run the command `python unlock-workspace.py`
