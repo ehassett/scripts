@@ -12,6 +12,7 @@ This repository stores scripts that I've used once upon a time for any future ne
   - [Usage](#usage-1)
 - [unlock-workspace](#unlock-workspace)
   - [Usage](#usage-2)
+- [sed commands](#sed-commands)
 
 # [migrate-repository](./migrate-repository/)
 
@@ -58,3 +59,11 @@ Python script for unlocking Terraform Cloud (or Enterprise) workspaces by list o
 2. If you want to unlock a whole project, set the `TFC_PROJECT` environment variable.
 3. If you want to unlock a list of workspaces, edit the script by adding the list to `TFC_WORKSPACES`.
 4. Run `unlock-workspace.py` or to make it easier, run `run.sh` to set up venev automatically.
+
+# sed commands
+
+- Replace aliased Terraform provider in tfstate file with unaliased one:
+
+```bash
+sed -i '' '/registry/s/"provider\[\\"registry\.terraform\.io\/hashicorp\/aws\\"\]\..*"/"provider\[\\"registry\.terraform\.io\/hashicorp\/aws\\"\]"/g' *.tfstate
+```
