@@ -3,6 +3,7 @@
 This repository stores scripts that I've used once upon a time for any future needs.
 
 # Contents
+
 - [ehassett's scripts](#ehassetts-scripts)
 - [Contents](#contents)
 - [migrate-repository](#migrate-repository)
@@ -40,11 +41,11 @@ Python script for copying the Terraform Cloud (or Enterprise) state file from on
 ## Usage
 
 1. Ensure that you have the `TFC_TOKEN` and `TFC_ORGANIZATION` environment variables set.
-     - If using Terraform Enterprise, `TFC_URL` will need set as well. It defaults to `app.terraform.io`.
+   - If using Terraform Enterprise, `TFC_URL` will need set as well. It defaults to `app.terraform.io`.
 2. Run the command `python migrate-tfc-state.py <source_workspace> <target_workspace> [-auto]`:
-    - replace `<source_workspace>` with the workspace you want to copy state from
-    - replace `<target_workspace>` with the workspace you want to copy state to
-    - optionally specify `-auto` at the end of the command to skip confirmation
+   - replace `<source_workspace>` with the workspace you want to copy state from
+   - replace `<target_workspace>` with the workspace you want to copy state to
+   - optionally specify `-auto` at the end of the command to skip confirmation
 
 # [unlock-workspace](./unlock-workspace/)
 
@@ -53,6 +54,7 @@ Python script for unlocking Terraform Cloud (or Enterprise) workspaces by list o
 ## Usage
 
 1. Ensure that you have the `TFC_TOKEN` and `TFC_ORGANIZATION` environment variables set.
-     - If using Terraform Enterprise, `TFC_URL` will need set as well. It defaults to `app.terraform.io`.
-2. Edit the script by adding either `TFC_WORKSPACES` or `TFC_PROJECT`. Using a project name takes priority.
-3. Run the command `python unlock-workspace.py`
+   - If using Terraform Enterprise, `TFC_URL` will need set as well. It defaults to `app.terraform.io`.
+2. If you want to unlock a whole project, set the `TFC_PROJECT` environment variable.
+3. If you want to unlock a list of workspaces, edit the script by adding the list to `TFC_WORKSPACES`.
+4. Run `unlock-workspace.py` or to make it easier, run `run.sh` to set up venev automatically.
