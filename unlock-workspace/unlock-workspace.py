@@ -13,7 +13,7 @@ api.set_org(TFC_ORGANIZATION)
 # TFC_WORKSPACES is a list of workspaces to unlock
 # TFC_PROJECT is a project name to unlock all workspaces inside (takes priority)
 TFC_WORKSPACES = []
-TFC_PROJECT = ""
+TFC_PROJECT = os.getenv("TFC_PROJECT", "")
 
 if len(TFC_WORKSPACES) == 0 and TFC_PROJECT == "":
   raise Exception("Workspaces or Project must be set")
