@@ -1,0 +1,17 @@
+{
+  "name": "cli-for-ynab",
+  "version": "1.0.0",
+  "description": "CLI tools for YNAB",
+  "main": "main.js",
+  "scripts": {
+    "start": "export NODE_NO_WARNINGS=1 && node main"
+  },
+  "author": "Ethan Hassett",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "inquirer": "12.0.1",
+    "mongoose": "8.7.3",
+    "ynab": "2.6.0"
+  }
+}
