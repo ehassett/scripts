@@ -7,22 +7,19 @@ This repository stores scripts that I've used once upon a time for any future ne
 - [ehassett's scripts](#ehassetts-scripts)
 - [Contents](#contents)
 - [CLI for YNAB](#cli-for-ynab)
-  - [Usage](#usage)
 - [migrate-repository](#migrate-repository)
-  - [Usage](#usage-1)
+  - [Usage](#usage)
 - [migrate-tfc-state](#migrate-tfc-state)
-  - [Usage](#usage-2)
+  - [Usage](#usage-1)
 - [unlock-workspace](#unlock-workspace)
-  - [Usage](#usage-3)
+  - [Usage](#usage-2)
 - [sed commands](#sed-commands)
 
 # [CLI for YNAB](./cli-for-ynab/README.md)
 
 Tool for performing various YNAB actions via CLI.
 
-## Usage
-
-Please take a look at the dedicated [README](./cli-for-ynab/README.md).
+View the [README](./cli-for-ynab/README.md) for more info.
 
 # [migrate-repository](./migrate-repository/)
 

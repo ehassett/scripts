@@ -1,29 +1,36 @@
 # CLI for YNAB
 
-Tool for performing various YNAB actions via CLI.
+A CLI tool for various YNAB functions not supported by the web app.
 
-# Contents
-
-- [CLI for YNAB](#cli-for-ynab)
-- [Contents](#contents)
-- [Prerequisites](#prerequisites)
-- [Usage](#usage)
-  - [MongoDB Backend (preferred)](#mongodb-backend-preferred)
-  - [No Database](#no-database)
-
-# Prerequisites
-
-1. `YNAB_TOKEN` must be set in your environment variables. For more info, view the [docs](https://api.ynab.com/#personal-access-tokens).
-2. Node must installed along with dependencies (`npm install`).
-3. If using MongoDB backend, Docker must be installed as well.
+![CLI for YNAB](doc/screenshot.png)
 
 # Usage
+
+## Functions
+
+- Audit Payees: Look for any unused payees to clean up your payee list.
+- Bulk Edit Memos: Edit one or more transaction memos at once. Search by existing memo, payee, or date and prepend, append, or overwrite memos.
+
+## Prerequisites
+
+1. Have a YNAB [personal access token](https://api.ynab.com/#personal-access-tokens).
+   - You can set this in your environment variables as `YNAB_TOKEN`, otherwise the app will prompt for it.
+2. Install Node v23.
 
 ## MongoDB Backend (preferred)
 
 Using this tool with a local MongoDB backend allows for quicker tasks as data is saved locally rather than retrieved from YNAB on every request.
 
-First, create the database container:
+To use a MongoDB backend:
+
+1. [Install Docker](https://www.docker.com/get-started/).
+2. Run `npm run start`.
+3. Answer _yes_ to "Would you like to use a local MongoDB database?"
+4. Answer _yes_ to "Would you like to create/start the 'cli-for-ynab-db' container automatically?"
+
+If you would like to manually manage the container:
+
+1. Create the container:
 
 ```bash
 docker run --detach \
@@ -33,14 +40,16 @@ docker run --detach \
     mongo:8
 ```
 
-Then, run the tool: `npm run start`
-
-Make sure to select _yes_ when prompted to use local MongoDB storage.
+2. Use `docker container start cli-for-ynab-db` to start the container, once created.
+3. Use `docker container stop cli-for-ynab-db` to stop the container, once created.
 
 ## No Database
 
 > **ℹ️** This may result in slower performance and potential rate limiting by YNAB.
 
-Run the tool: `npm run start`
-
 Make sure to select _no_ when prompted to use local MongoDB storage.
+
+# Roadmap
+
+- [ ] Create [Inquirer](https://github.com/SBoudrias/Inquirer.js) date prompt
+- [ ] Add currency conversion
