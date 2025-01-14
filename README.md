@@ -11,6 +11,7 @@ This repository stores scripts that I've used once upon a time for any future ne
   - [Usage](#usage)
 - [migrate-tfc-state](#migrate-tfc-state)
   - [Usage](#usage-1)
+- [tailscale-exit-node-setup](#tailscale-exit-node-setup)
 - [unlock-workspace](#unlock-workspace)
   - [Usage](#usage-2)
 - [sed commands](#sed-commands)
@@ -54,6 +55,10 @@ Python script for copying the Terraform Cloud (or Enterprise) state file from on
    - replace `<source_workspace>` with the workspace you want to copy state from
    - replace `<target_workspace>` with the workspace you want to copy state to
    - optionally specify `-auto` at the end of the command to skip confirmation
+
+# [tailscale-exit-node-setup](./tailscale-exit-node-setup/)
+
+A basic shell script for setting up a [Tailscale exit node](https://tailscale.com/kb/1103/exit-nodes). Tested on Ubuntu 24.04.
 
 # [unlock-workspace](./unlock-workspace/)
 
