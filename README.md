@@ -1,20 +1,37 @@
-# ehassett's scripts
+# scripts
 
 This repository stores scripts that I've used once upon a time for any future needs.
 
 # Contents
 
-- [ehassett's scripts](#ehassetts-scripts)
+- [scripts](#scripts)
 - [Contents](#contents)
+- [Contributing](#contributing)
+- [backup-from-date](#backup-from-date)
+  - [Usage](#usage)
 - [CLI for YNAB](#cli-for-ynab)
 - [migrate-repository](#migrate-repository)
-  - [Usage](#usage)
-- [migrate-tfc-state](#migrate-tfc-state)
   - [Usage](#usage-1)
+- [migrate-tfc-state](#migrate-tfc-state)
+  - [Usage](#usage-2)
 - [tailscale-exit-node-setup](#tailscale-exit-node-setup)
 - [unlock-workspace](#unlock-workspace)
-  - [Usage](#usage-2)
+  - [Usage](#usage-3)
 - [sed commands](#sed-commands)
+
+# Contributing
+
+- Follow [conventional commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) for commits _and_ PR titles.
+- Follow [GitHub Flow](https://githubflow.github.io) for branching strategy and PR process.
+
+# [backup-from-date](./backup-from-date/backup.sh)
+
+Script to copy all files since a date from one directory to another, preserving directory structure.
+
+## Usage
+
+Run the script passing in the directories and date as arguments. Date should be in the form `MM/DD/YY`.
+`./backup-from-date/backup.sh <FROM_DIR> <TO_DIR> <DATE>`
 
 # [CLI for YNAB](./cli-for-ynab/README.md)
 
@@ -74,7 +91,7 @@ Python script for unlocking Terraform Cloud (or Enterprise) workspaces by list o
 
 # sed commands
 
-- Replace aliased Terraform provider in tfstate file with unaliased one:
+- Replace all aliased Terraform providers in tfstate file with unaliased one:
 
 ```bash
 sed -i '' '/registry/s/"provider\[\\"registry\.terraform\.io\/hashicorp\/aws\\"\]\..*"/"provider\[\\"registry\.terraform\.io\/hashicorp\/aws\\"\]"/g' *.tfstate
